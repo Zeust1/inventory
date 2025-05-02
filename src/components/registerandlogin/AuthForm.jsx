@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AuthForm.css';
-import postUser from '../../apis/postUser.jsx';
-import apiUrl from '../../apis/api.jsx';
+import usersAPI from '../../apis/usersAPI.jsx';
+import { toast } from 'react-toastify';
+
+
 
 const AuthForm = ({usersData}) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,27 +15,11 @@ const AuthForm = ({usersData}) => {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [generatedOtp, setGeneratedOtp] = useState(null);
 
+  const { postUser, sendOtpToEmail } = usersAPI()
+
   const navigate = useNavigate();
 
-  const sendOtpToEmail = async (email, otp) => {
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        mode: "no-cors",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, otp }),
-      });
-      if (response.status == '0') {
-        alert('Mã OTP đã được gửi tới email.');
-      } else {
-        alert('Không thể gửi OTP');
-      }
-    } catch (error) {
-      alert('Lỗi gửi OTP');
-    }
-  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,35 +29,36 @@ const AuthForm = ({usersData}) => {
         (item) => item.email == email && item.password == password
       );
       if (isAuth) {
-        alert('Đăng nhập thành công');
+        toast.success('Đăng nhập thành công');
         localStorage.setItem('token', JSON.stringify({ email }));
         navigate('/dashboard');
       } else {
-        alert('Sai email hoặc mật khẩu');
+        toast.error('Sai email hoặc mật khẩu');
       }
     } else {
       // Đăng ký
       if (!isOtpSent) {
         if (password !== confirmPassword) {
-          return alert('Xác thực mật khẩu không đúng');
+          return toast.warn('Xác thực mật khẩu không đúng');
         }
 
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOtp(newOtp);
         setIsOtpSent(true);
-        await sendOtpToEmail(email, newOtp);
+        const responeSendOtpEmail = await sendOtpToEmail(email, newOtp)
+        toast.info(responeSendOtpEmail.data.message);
       } else {
         // Xác nhận OTP
         if (otp === generatedOtp) {
           postUser({ email, password, otp }); // Ghi vào Sheet
-          alert('Đăng ký thành công, vui lòng đăng nhập.');
+          toast.success('Đăng ký thành công, vui lòng đăng nhập.');
           setIsLogin(true);
           setPassword('');
           setConfirmPassword('');
           setOtp('');
           setIsOtpSent(false);
         } else {
-          alert('OTP không chính xác');
+          toast.error('OTP không chính xác');
         }
       }
     }

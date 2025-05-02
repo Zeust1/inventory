@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import './Dashboard.css';
 import Products from '../products/Products.jsx';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Dashboard = ({products, setProducts}) => {
   const [activeTab, setActiveTab] = useState("products");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/";
+    navigate('/');
+    toast.error("Bãn đã đăng xuất khỏi hệ thống")
   };
 
   const renderContent = () => {

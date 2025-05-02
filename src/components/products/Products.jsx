@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import './Products.css'
-
+import productsAPI from '../../apis/productsAPI.jsx';
 
 const Products = ({products, setProducts}) => {
-  const [formData, setFormData] = useState({ code: '', name: '', unit: '', inventory: '' });
+  const [formData, setFormData] = useState({ productCode: '', productName: '', unit: '', inventory: 0});
   const [showPopup, setShowPopup] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(5); // ← thêm
 
@@ -13,6 +14,7 @@ const Products = ({products, setProducts}) => {
   // search
   const [searchTerm, setSearchTerm] = useState('');
 
+  const { postProduct } = productsAPI()
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,13 +35,12 @@ const Products = ({products, setProducts}) => {
       );
       
 
-  const handleAddProduct = (e) => {
+  const handleAddProduct = async (e) => {
     e.preventDefault()
-    alert("Thêm sản phẩm thành công")
-    // setProducts(prev => [...prev, formData]);
-    // .... thêm login api post sản phẩm mới lên google sheet appscript
-    setFormData({ code: '', name: '', unit: '', inventory: '' });
-    setShowPopup(false);
+    const respone = await postProduct(formData)
+    respone.status == "200" ? toast.success(respone.message) : toast.warn(respone.message);
+    setFormData({ productCode: '', productName: '', unit: '', inventory: 0});
+    respone.message == "Mã sản phẩm đã tồn tại" ? setShowPopup(true) : setShowPopup(false);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -120,10 +121,10 @@ const Products = ({products, setProducts}) => {
         <div className="popup-overlay">
           <div className="popup">
             <h3>Thêm sản phẩm mới</h3>
-            <input name="id" placeholder="Mã sản phẩm" value={formData.code} onChange={handleChange} />
-            <input name="name" placeholder="Tên sản phẩm" value={formData.name} onChange={handleChange} />
+            <input name="productCode" placeholder="Mã sản phẩm" value={formData.productCode} onChange={handleChange} />
+            <input name="productName" placeholder="Tên sản phẩm" value={formData.productName} onChange={handleChange} />
             <input name="unit" placeholder="Đơn vị tính" value={formData.unit} onChange={handleChange} />
-            <input name="stock" placeholder="Tồn kho" value={formData.inventory} onChange={handleChange} />
+            <input name="inventory" placeholder="Tồn kho" value={formData.inventory} onChange={handleChange} />
             <div className="popup-actions">
               <button onClick={handleAddProduct}>Lưu</button>
               <button onClick={() => setShowPopup(false)}>Hủy</button>
