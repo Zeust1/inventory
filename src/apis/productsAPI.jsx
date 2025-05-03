@@ -4,6 +4,7 @@ import axios from "axios"
 
 const productsAPI = () => {
 
+  // lấy danh sách sản phẩm từ database
   const getProductsList = async (setProducts) => {
     try {
       const user = await axios.get(apiUrl + "get-products-list")

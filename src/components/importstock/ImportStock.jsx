@@ -1,12 +1,16 @@
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import { toast } from 'react-toastify';
 import { useState } from 'react';
 import './ImportStock.css';
+import importsAPI from '../../apis/importsAPI.jsx';
 
 const ImportStock = ({ products, setProducts }) => {
   const [rows, setRows] = useState([
     { productCode: '', productName: '', unit: '', quantity: 1, note: '' },
   ]);
+
+  const { postImportStock } = importsAPI()
 
   const handleChange = (index, field, value, selectedProduct = null) => {
     const newRows = [...rows];
@@ -41,10 +45,10 @@ const ImportStock = ({ products, setProducts }) => {
     setRows(newRows);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitted data: ', rows);
-    // TODO: Post lên App Script + cập nhật tồn kho
+    const res = await postImportStock(rows)
+    toast.success(res.message)
   };
 
   return (
@@ -93,11 +97,15 @@ const ImportStock = ({ products, setProducts }) => {
                     size="small"
                   />
                 )}
-                renderOption={(props, option) => (
-                  <li {...props}>
-                    {option.productCode} — {option.productName}
-                  </li>
-                )}
+                renderOption={(props, option) => {
+                  const { key, ...rest } = props;
+                  return (
+                    <li key={key} {...rest}>
+                      {option.productCode}— {option.productName}
+                    </li>
+                  );
+                }}
+                
               />
 
               <input type="text" value={row.productName} readOnly />

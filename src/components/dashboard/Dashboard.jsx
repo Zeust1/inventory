@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './Dashboard.css';
 import Products from '../products/Products.jsx';
 import ImportStock from '../importstock/ImportStock.jsx';
+import ExportStock from '../exportStock/ExportStock.jsx';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -24,7 +25,7 @@ const Dashboard = ({products, setProducts}) => {
       case "import":
         return <ImportStock products={products} setProducts={setProducts}/>;
       case "export":
-        return <h2>📤 Xuất kho</h2>;
+        return <ExportStock products={products}/>;
       default:
         return <h2>Chào mừng bạn đến Dashboard</h2>;
     }
