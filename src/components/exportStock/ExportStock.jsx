@@ -1,13 +1,22 @@
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
-import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
+import exportsAPI from '../../apis/exportsAPI.jsx';
 import './ExportStock.css';
+import * as XLSX from 'xlsx'; // Thư viện để đọc file Excel
+import axios from 'axios';
 
 const ExportStock = ({ products }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]); // State để lưu dữ liệu từ file Excel
   const [rows, setRows] = useState([
     { productCode: '', productName: '', unit: '', quantity: 1, exportedTo: '', reason: '' },
   ]);
 
+  const { postExportStock } = exportsAPI()
+  const [fileName, setFileName] = useState("")
+  const [ fileLength, setFileLength ] = useState(0)
   const handleChange = (index, field, value, selectedProduct = null) => {
     const newRows = [...rows];
 
@@ -35,15 +44,115 @@ const ExportStock = ({ products }) => {
     setRows(rows.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Exported Data:', rows);
-    // Submit to backend or Apps Script
+  const submitExcel = () => {
+    const newRows = data.map(item => ({
+      productCode: item.productCode,
+      productName: item.productName,
+      unit: item.unit, // có thể điền thêm nếu file chứa cột đơn vị
+      quantity: item.quantity,
+      exportedTo: item.exportedTo,
+      reason: item.reason
+    }));
+    setRows([...rows, ...newRows]);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await postExportStock(rows);
+  
+    const delayPerToast = 500;
+    let longestTimeout = 0;
+  
+    res.forEach((response, index) => {
+      const delay = index * delayPerToast;
+  
+      if (response.status === "200") {
+        setTimeout(() => toast.success(response.message), delay);
+      } else {
+        setTimeout(() => toast.error(response.message), delay);
+      }
+  
+      longestTimeout = delay;
+    });
+  
+    // Tắt loading sau khi tất cả toast đã hiện
+    setTimeout(() => {
+      setLoading(false);
+    }, longestTimeout + 6000); // 3s là thời gian toast hiển thị
+  };
+  
+   // Xử lý sự kiện khi chọn file Excel
+   const handleFileChange =  (e) => {
+    const file = e.target.files[0];
+    const filename = file.name
+    setFileName(filename)
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      // Đọc nội dung file thành ArrayBuffer
+      const dataArray = new Uint8Array(evt.target.result);
+      // Dùng SheetJS đọc workbook
+      const workbook = XLSX.read(dataArray, { type: 'array' });
+      // Lấy sheet đầu tiên
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      // Chuyển sheet thành JSON (mảng đối tượng)
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      if(jsonData.length > 300){
+      setFileLength(jsonData.length)
+      return toast.error("File nhận tối đã 300 dòng (không tính hàng tiêu đề)")
+      } else {
+        setData(jsonData);  // cập nhật state để hiển thị
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+
+const handleDownloadTemplate = () => {
+  const sampleData = [
+    {
+      "productCode": "SP001",
+      "productName": "Bút bi Thiên Long",
+      "unit": "cái",
+      "quantity": 10,
+      "exportedTo": "Phòng Kế Toán",
+      "reason": "Cấp mới"
+    }
+  ];
+
+  const worksheet = XLSX.utils.json_to_sheet(sampleData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Mẫu Xuất Kho");
+
+  XLSX.writeFile(workbook, "Mau_Xuat_Kho.xlsx");
+};
+
+  
   return (
     <div className="export-form-container">
       <h2>📤 Xuất kho sản phẩm</h2>
+      <div className='import-xlsx'>
+      <div className="file-upload-wrapper">
+          <button
+            type="button"
+            className="download-template-button"
+            onClick={handleDownloadTemplate}
+          >
+            📥 Tải file mẫu
+          </button>
+          <input
+            type="file"
+            id="excel-upload"
+            accept=".xlsx, .xls"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="excel-upload" className="upload-label">
+            {fileName ? fileName : "📤 Tải file Excel"}
+          </label>
+          {(fileName && fileLength <= 300) && <button onClick={submitExcel}>Xác nhận tải file Excel</button>}
+        </div>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="form-table-export">
           <div className="form-row-export header">
@@ -83,14 +192,13 @@ const ExportStock = ({ products }) => {
                   const { key, ...rest } = props;
                   return (
                     <li key={key} {...rest}>
-                      <div><strong>{option.productCode}</strong></div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>{option.productName}</div>
+                      <div>{option.productName}</div>
                     </li>
                   );
                 }}
               />
-              <input type="text" value={row.productName} readOnly />
-              <input type="text" value={row.unit} readOnly />
+              <input type="text" value={row.productName} onChange={(e) => handleChange(index, 'productName', e.target.value)} />
+              <input type="text" value={row.unit} onChange={(e) => handleChange(index, 'unit', e.target.value)} />
               <input
                 type="number"
                 min="1"
@@ -119,7 +227,15 @@ const ExportStock = ({ products }) => {
             </div>
           ))}
         </div>
-        <button type="submit" className="submit-button">Lưu phiếu xuất</button>
+          <button type='submit' className='submit-button' disabled={loading}>
+            {loading ? (
+              <>
+                <span className="spinner"></span> Loading...
+              </>
+            ) : (
+              'Lưu phiếu xuất'
+            )}
+          </button>
       </form>
     </div>
   );

@@ -5,6 +5,9 @@
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
   
   .export-form-container h2 {
@@ -77,5 +80,86 @@
   
   .submit-button:hover {
     background-color: #0056b3;
+  }
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+
+  .file-upload-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+  }
+  
+  input[type="file"] {
+    display: none;
+  }
+  
+  .upload-label {
+    display: inline-block;
+    background-color: #4f46e5;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .upload-label:hover {
+    background-color: #4338ca;
+    transform: scale(1.02);
+  }
+  
+  .upload-label:active {
+    transform: scale(0.98);
+  }
+  
+  .file-upload-wrapper button {
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    background-color: green;
+    padding: 10px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+
+  }
+
+  .file-upload-wrapper button:hover {
+    background-color: rgb(1, 85, 1);
+    transform: scale(1.02);
+  }
+
+  .download-template-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .download-template-button:hover {
+    background-color: #388e3c;
   }
   

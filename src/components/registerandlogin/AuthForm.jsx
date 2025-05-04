@@ -29,36 +29,90 @@ const AuthForm = ({usersData}) => {
         (item) => item.email == email && item.password == password
       );
       if (isAuth) {
-        toast.success('Đăng nhập thành công');
+        toast.success(`Xin chào ${email}`, {
+          position: "top-center",
+          autoClose: 3500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          theme: "colored"
+        });
         localStorage.setItem('token', JSON.stringify({ email }));
         navigate('/dashboard');
       } else {
-        toast.error('Sai email hoặc mật khẩu');
+        toast.error('Sai email hoặc mật khẩu', {
+          position: "top-center",
+          autoClose: 3500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          theme: "colored"
+        });
       }
+      setIsLogin(true);
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setOtp('');
+      setIsOtpSent(false);
     } else {
       // Đăng ký
       if (!isOtpSent) {
         if (password !== confirmPassword) {
-          return toast.warn('Xác thực mật khẩu không đúng');
+          return toast.warn('Xác thực mật khẩu không đúng', {
+            position: "top-center",
+            autoClose: 3500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "colored"
+          });
         }
 
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOtp(newOtp);
         setIsOtpSent(true);
         const responeSendOtpEmail = await sendOtpToEmail(email, newOtp)
-        toast.info(responeSendOtpEmail.data.message);
+        toast.info(responeSendOtpEmail.data.message, {
+          position: "top-center",
+          autoClose: 3500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          theme: "colored"
+        });
       } else {
         // Xác nhận OTP
         if (otp === generatedOtp) {
           postUser({ email, password, otp }); // Ghi vào Sheet
-          toast.success('Đăng ký thành công, vui lòng đăng nhập.');
+          toast.success('Đăng ký thành công, vui lòng đăng nhập.', {
+            position: "top-center",
+            autoClose: 3500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "colored"
+          });
           setIsLogin(true);
           setPassword('');
           setConfirmPassword('');
           setOtp('');
           setIsOtpSent(false);
         } else {
-          toast.error('OTP không chính xác');
+          toast.error('OTP không chính xác', {
+            position: "top-center",
+            autoClose: 3500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "colored"
+          });
         }
       }
     }

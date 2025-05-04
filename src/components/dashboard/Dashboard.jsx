@@ -15,7 +15,15 @@ const Dashboard = ({products, setProducts}) => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate('/');
-    toast.error("Bãn đã đăng xuất khỏi hệ thống")
+    toast.error("Bãn đã đăng xuất khỏi hệ thống",{
+      position: "top-center",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      theme: "colored",
+    })
   };
 
   const renderContent = () => {

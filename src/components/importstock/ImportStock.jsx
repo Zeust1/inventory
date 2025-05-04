@@ -6,6 +6,7 @@ import './ImportStock.css';
 import importsAPI from '../../apis/importsAPI.jsx';
 
 const ImportStock = ({ products, setProducts }) => {
+  const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([
     { productCode: '', productName: '', unit: '', quantity: 1, note: '' },
   ]);
@@ -47,9 +48,30 @@ const ImportStock = ({ products, setProducts }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await postImportStock(rows)
-    toast.success(res.message)
+    setLoading(true);
+  
+    const res = await postImportStock(rows);
+  
+    let longestTimeout = 0;
+    const delayPerToast = 500;
+  
+    res.results.forEach((result, index) => {
+      const delay = index * delayPerToast;
+      if (result.status === "success") {
+        setTimeout(() => toast.success(result.message), delay);
+      } else {
+        setTimeout(() => toast.error(result.message), delay);
+      }
+  
+      longestTimeout = delay; // save last timeout
+    });
+  
+    // Tắt loading sau khi toast cuối cùng đã hiện
+    setTimeout(() => {
+      setLoading(false);
+    }, longestTimeout + 6000); // + thêm thời gian toast hiện ra (tuỳ bạn muốn bao lâu)
   };
+  
 
   return (
     <div className="import-form-container">
@@ -101,7 +123,7 @@ const ImportStock = ({ products, setProducts }) => {
                   const { key, ...rest } = props;
                   return (
                     <li key={key} {...rest}>
-                      {option.productCode}— {option.productName}
+                      {option.productName}
                     </li>
                   );
                 }}
@@ -140,8 +162,14 @@ const ImportStock = ({ products, setProducts }) => {
             </div>
           ))}
         </div>
-        <button type="submit" className="submit-button">
-          Lưu phiếu nhập
+        <button type='submit' className='submit-button' disabled={loading}>
+          {loading ? (
+            <>
+              <span className="spinner"></span> Loading...
+            </>
+          ) : (
+            'Lưu phiếu nhập'
+          )}
         </button>
       </form>
     </div>
